@@ -1,3 +1,4 @@
+import { GithubLogoIcon } from "@phosphor-icons/react/dist/csr/GithubLogo";
 import { FileBar } from "./audio/file-bar";
 import { FadeSettings } from "./editor/fade-settings";
 import { Timeline } from "./editor/timeline";
@@ -24,6 +25,15 @@ export function App() {
     <main className="shell">
       <header className="page-header">
         <h1>Simple Audio Cutter</h1>
+        <a
+          className="github-link"
+          href="https://github.com/Simirall/simple-audio-cutter"
+          target="_blank"
+          rel="noopener"
+          aria-label="GitHub リポジトリ（新しいタブで開く）"
+        >
+          <GithubLogoIcon size="var(--action-icon-size)" weight="fill" aria-hidden="true" />
+        </a>
       </header>
       <FileBar audio={audio} disabled={!!job} onLoad={load} />
       {job && (
