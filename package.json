@@ -12,6 +12,10 @@
   },
   "dependencies": {
     "@knadh/oat": "^1.1.0",
+    "@mediabunny/aac-encoder": "^1.66.0",
+    "@mediabunny/mp3-encoder": "^1.66.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "mediabunny": "^1.66.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
