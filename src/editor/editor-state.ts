@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import type { Audio } from "../audio/read-audio";
+import type { Audio } from "../audio/audio";
 import { resolveEdit } from "./edit";
 import type { EditSettings, Fade } from "./edit";
 

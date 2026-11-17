@@ -4,18 +4,18 @@ import { useAtomValue } from "jotai";
 import type { CSSProperties } from "react";
 import { clock } from "../editor/edit";
 import { editResultAtom } from "../editor/editor-state";
+import { playbackPositionAtom } from "./use-playback";
 import type { usePlayback } from "./use-playback";
 
 export function PlaybackControls({
   playback,
-  position,
   rate,
 }: {
   playback: Pick<ReturnType<typeof usePlayback>, "playing" | "toggle" | "beginScrub" | "seek">;
-  position: number;
   rate: number;
 }) {
   const { playing } = playback;
+  const position = useAtomValue(playbackPositionAtom);
   const { invalid, total } = useAtomValue(editResultAtom);
 
   return (

@@ -2,38 +2,34 @@ import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
-import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { CornersOutIcon } from "@phosphor-icons/react/dist/csr/CornersOut";
 import { MagnifyingGlassMinusIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlassMinus";
 import { MagnifyingGlassPlusIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlassPlus";
-import type { Audio } from "../audio/read-audio";
+import type { Audio } from "../audio/audio";
 import { clock, editRange } from "../editor/edit";
 import type { Range } from "../editor/edit";
+import { Playhead } from "./playhead";
+import type { Viewport } from "./playhead";
 import { useWaveformCanvas } from "./use-waveform-canvas";
-import type { Viewport } from "./use-waveform-viewport";
 
 export function Waveform({
   audio,
-  viewport,
-  onViewportChange,
   range,
-  cursor,
+  playing,
   onRange,
-  onRangeDrag,
   onSeek,
   onSeekStart,
 }: {
   audio: Audio;
-  viewport: Viewport;
-  onViewportChange: (viewport: Viewport) => void;
   range: Range;
-  cursor: number;
+  playing: boolean;
   onRange: (range: Range) => void;
-  onRangeDrag: (dragging: boolean) => void;
   onSeek: (frame: number) => void;
   onSeekStart: (id: number) => void;
 }) {
   const rail = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState<Viewport>({ left: 0, zoom: 1 });
+  const [rangeDragging, setRangeDragging] = useState(false);
   const { left, zoom } = viewport;
   const [active, setActive] = useState(0);
   const drag = useRef<{
@@ -56,7 +52,7 @@ export function Waveform({
   function zoomTo(next: number) {
     const nextSpan = Math.ceil(audio.frames / next);
     const center = zoom === 1 ? (range[0] + range[1]) / 2 : left + span / 2;
-    onViewportChange({
+    setViewport({
       left: Math.max(0, Math.min(audio.frames - nextSpan, Math.round(center - nextSpan / 2))),
       zoom: next,
     });
@@ -78,13 +74,13 @@ export function Waveform({
       span,
     };
     rail.current.setPointerCapture(event.pointerId);
-    onRangeDrag(true);
+    setRangeDragging(true);
     onSeekStart(event.pointerId);
   }
 
   function endDrag() {
     drag.current = null;
-    onRangeDrag(false);
+    setRangeDragging(false);
   }
 
   function frameAt(event: PointerEvent<HTMLDivElement>) {
@@ -186,13 +182,15 @@ export function Waveform({
               style={{ left: `${from}%`, width: `${to - from}%` }}
             />
           ))}
-          {cursor >= left && cursor <= right && (
-            <div className="cursor" aria-hidden="true" style={{ left: `${percent(cursor)}%` }}>
-              <span>
-                <CaretDownIcon size={16} weight="fill" />
-              </span>
-            </div>
-          )}
+          <Playhead
+            length={audio.frames}
+            range={range}
+            viewport={viewport}
+            span={span}
+            playing={playing}
+            rangeDragging={rangeDragging}
+            onViewportChange={setViewport}
+          />
           {range.map(
             (frame, edge) =>
               frame >= left &&
@@ -244,9 +242,7 @@ export function Waveform({
             className="icon-button ghost"
             aria-label="波形を左へ移動"
             title="波形を左へ移動"
-            onClick={() =>
-              onViewportChange({ left: Math.max(0, left - Math.ceil(span / 2)), zoom })
-            }
+            onClick={() => setViewport({ left: Math.max(0, left - Math.ceil(span / 2)), zoom })}
             disabled={left === 0}
           >
             <ArrowLeftIcon />
@@ -261,7 +257,7 @@ export function Waveform({
             aria-label="波形を右へ移動"
             title="波形を右へ移動"
             onClick={() =>
-              onViewportChange({
+              setViewport({
                 left: Math.min(audio.frames - span, left + Math.ceil(span / 2)),
                 zoom,
               })

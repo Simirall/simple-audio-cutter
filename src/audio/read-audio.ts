@@ -10,15 +10,8 @@ import {
   WAVE,
   WEBM,
 } from "mediabunny";
-
-export const peakSize = 128;
-
-export type Audio = {
-  name: string;
-  buffer: AudioBuffer;
-  frames: number;
-  peaks: Float32Array;
-};
+import { peakSize } from "./audio";
+import type { Audio } from "./audio";
 
 type Progress = (fraction: number) => void;
 
@@ -27,6 +20,7 @@ export async function readAudio(
   signal: AbortSignal,
   progress: Progress,
 ): Promise<Audio> {
+  signal.throwIfAborted();
   const input = new Input({
     source: new BlobSource(file),
     formats: [MP3, WAVE, MP4, ADTS, OGG, WEBM, FLAC],

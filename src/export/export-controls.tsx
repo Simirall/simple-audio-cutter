@@ -1,8 +1,8 @@
 import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/csr/DownloadSimple";
 import { useAtomValue } from "jotai";
 import { editResultAtom } from "../editor/editor-state";
-import { formats } from "./encode-audio";
 import type { Format } from "./encode-audio";
+import { formatLabels } from "./use-audio-export";
 import type { useAudioExport } from "./use-audio-export";
 
 export function ExportControls({
@@ -62,7 +62,7 @@ export function ExportControls({
           >
             {choices.map((id) => (
               <option key={id} value={id}>
-                {formats[id].label}
+                {formatLabels[id]}
               </option>
             ))}
           </select>

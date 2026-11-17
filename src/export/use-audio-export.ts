@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import type { Audio } from "../audio/read-audio";
+import type { Audio } from "../audio/audio";
 import type { Range } from "../editor/edit";
-import { encodeAudio, supportsFormat } from "./encode-audio";
 import type { Format } from "./encode-audio";
 import { exportFileName } from "./export-file-name";
 
 const baseFormats: Format[] = ["mp3", "m4a", "wav"];
+export const formatLabels = {
+  mp3: "MP3",
+  m4a: "M4A (AAC)",
+  wav: "WAV",
+  ogg: "Ogg (Opus)",
+  flac: "FLAC",
+} satisfies Record<Format, string>;
 
 export function useAudioExport(audio: Audio | null, clearError: () => void) {
   const [format, setFormat] = useState<Format>("mp3");
@@ -19,13 +25,16 @@ export function useAudioExport(audio: Audio | null, clearError: () => void) {
   useEffect(() => {
     if (!audio) return;
     let current = true;
-    void Promise.all(
-      (["ogg", "flac"] as const).map(async (id) =>
-        (await supportsFormat(id, audio.buffer).catch(() => false)) ? [id] : [],
-      ),
-    ).then((results) => {
-      if (current) setChoices([...baseFormats, ...results.flat()]);
-    });
+    void import("./encode-audio")
+      .then(async ({ supportsFormat }) => {
+        const results = await Promise.all(
+          (["ogg", "flac"] as const).map(async (id) =>
+            (await supportsFormat(id, audio.buffer).catch(() => false)) ? [id] : [],
+          ),
+        );
+        if (current) setChoices([...baseFormats, ...results.flat()]);
+      })
+      .catch(() => {});
     return () => {
       current = false;
     };
@@ -73,6 +82,8 @@ export function useAudioExport(audio: Audio | null, clearError: () => void) {
       onProgress: (progress: number) => void,
     ) {
       const name = nameByDate ? dateName : originalName;
+      const { encodeAudio } = await import("./encode-audio");
+      signal.throwIfAborted();
       const blob = await encodeAudio(buffer, range, fades[0], fades[1], format, signal, onProgress);
       signal.throwIfAborted();
       setDownload({ url: URL.createObjectURL(blob), name });

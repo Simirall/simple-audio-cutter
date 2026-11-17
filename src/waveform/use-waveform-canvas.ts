@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { peakSize } from "../audio/read-audio";
+import { peakSize } from "../audio/audio";
 
 export function useWaveformCanvas(peaks: Float32Array, left: number, span: number) {
   const canvas = useRef<HTMLCanvasElement>(null);

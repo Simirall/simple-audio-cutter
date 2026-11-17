@@ -12,37 +12,32 @@ import {
 import { frameCount, gainAt } from "../editor/edit";
 import type { Range } from "../editor/edit";
 
-export const formats = {
+const formats = {
   mp3: {
-    label: "MP3",
     codec: "mp3",
     bitrate: 192_000,
     container: Mp3OutputFormat,
     mime: "audio/mpeg",
   },
   m4a: {
-    label: "M4A (AAC)",
     codec: "aac",
     bitrate: 192_000,
     container: Mp4OutputFormat,
     mime: "audio/mp4",
   },
   wav: {
-    label: "WAV",
     codec: "pcm-s16",
     bitrate: undefined,
     container: WavOutputFormat,
     mime: "audio/wav",
   },
   ogg: {
-    label: "Ogg (Opus)",
     codec: "opus",
     bitrate: 192_000,
     container: OggOutputFormat,
     mime: "audio/ogg",
   },
   flac: {
-    label: "FLAC",
     codec: "flac",
     bitrate: undefined,
     container: FlacOutputFormat,

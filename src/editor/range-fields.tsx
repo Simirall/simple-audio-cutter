@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import type { Audio } from "../audio/read-audio";
+import type { Audio } from "../audio/audio";
 import { clock, rangeFromTime } from "./edit";
 import type { Range } from "./edit";
 import { rangeAtom } from "./editor-state";

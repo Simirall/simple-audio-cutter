@@ -1,6 +1,6 @@
 import { FolderOpenIcon } from "@phosphor-icons/react/dist/csr/FolderOpen";
 import { clock } from "../editor/edit";
-import type { Audio } from "./read-audio";
+import type { Audio } from "./audio";
 
 export function FileBar({
   audio,

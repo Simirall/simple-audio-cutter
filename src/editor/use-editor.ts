@@ -1,6 +1,5 @@
 import { useAtomValue, useStore } from "jotai";
 import { useState } from "react";
-import { readAudio } from "../audio/read-audio";
 import { useAudioJob } from "../audio/use-audio-job";
 import { useAudioExport } from "../export/use-audio-export";
 import { usePlayback } from "../playback/use-playback";
@@ -39,6 +38,7 @@ export function useEditor() {
   function load(file: File) {
     playback.pause();
     void run("read", async (signal) => {
+      const { readAudio } = await import("../audio/read-audio");
       const next = await readAudio(file, signal, setProgress);
       signal.throwIfAborted();
       playback.reset();
