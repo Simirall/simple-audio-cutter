@@ -243,7 +243,7 @@ export function Waveform({
             aria-label="波形を左へ移動"
             title="波形を左へ移動"
             onClick={() => setViewport({ left: Math.max(0, left - Math.ceil(span / 2)), zoom })}
-            disabled={left === 0}
+            disabled={playing || left === 0}
           >
             <ArrowLeftIcon />
           </button>
@@ -262,7 +262,7 @@ export function Waveform({
                 zoom,
               })
             }
-            disabled={right >= audio.frames}
+            disabled={playing || right >= audio.frames}
           >
             <ArrowRightIcon />
           </button>
