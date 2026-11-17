@@ -1,16 +1,6 @@
 export type Range = readonly [start: number, end: number];
 export type Fade = { enabled: boolean; preset: "2" | "5" | "custom"; custom: string };
-
-export function exportFileName(sourceName: string, extension: string, date?: Date): string {
-  if (!date) {
-    const baseName = sourceName.replace(/\.[^.]+$/, "") || "audio";
-    return `${baseName}.${extension}`;
-  }
-  const year = String(date.getFullYear()).padStart(4, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}${month}${day}.${extension}`;
-}
+export type EditSettings = { range: Range; fadeIn: Fade; fadeOut: Fade };
 
 export function fadeSeconds({ enabled, preset, custom }: Fade) {
   return enabled ? (preset === "custom" ? custom : preset) : "0";
@@ -29,6 +19,11 @@ export function fadeSettings(fadeIn: string, fadeOut: string, rate: number, leng
   else if (seconds[0] + seconds[1] > length / rate + Number.EPSILON || fades[0] + fades[1] > length)
     invalid = "フェードの合計を仕上がりの長さ以下にしてください。";
   return { fades, invalid };
+}
+
+export function resolveEdit({ range, fadeIn, fadeOut }: EditSettings, rate: number) {
+  const total = frameCount(range);
+  return { total, ...fadeSettings(fadeSeconds(fadeIn), fadeSeconds(fadeOut), rate, total) };
 }
 
 export function clampPosition(position: number, length: number) {
@@ -70,6 +65,24 @@ export function parseTime(text: string, sampleRate: number) {
   const parts = text.trim().split(":");
   if (parts.length > 3 || parts.some((part) => !/^\d+(?:\.\d+)?$/.test(part))) return NaN;
   return Math.round(parts.reduce((sum, part) => sum * 60 + Number(part), 0) * sampleRate);
+}
+
+export function rangeFromTime(
+  range: Range,
+  edge: number,
+  text: string,
+  sampleRate: number,
+  length: number,
+): Range | null {
+  const frame = parseTime(text, sampleRate);
+  if (
+    !Number.isFinite(frame) ||
+    frame > length ||
+    (edge === 0 ? frame >= range[1] : frame <= range[0])
+  ) {
+    return null;
+  }
+  return edge === 0 ? [frame, range[1]] : [range[0], frame];
 }
 
 export function editRange([start, end]: Range, edge: number, frame: number, length: number): Range {

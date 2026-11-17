@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
@@ -6,12 +6,11 @@ import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { CornersOutIcon } from "@phosphor-icons/react/dist/csr/CornersOut";
 import { MagnifyingGlassMinusIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlassMinus";
 import { MagnifyingGlassPlusIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlassPlus";
-import { peakSize } from "./audio";
-import type { Audio } from "./audio";
-import { clock, editRange } from "./edit";
-import type { Range } from "./edit";
-
-type Viewport = { left: number; zoom: number };
+import type { Audio } from "../audio/read-audio";
+import { clock, editRange } from "../editor/edit";
+import type { Range } from "../editor/edit";
+import { useWaveformCanvas } from "./use-waveform-canvas";
+import type { Viewport } from "./use-waveform-viewport";
 
 export function Waveform({
   audio,
@@ -34,7 +33,6 @@ export function Waveform({
   onSeek: (frame: number) => void;
   onSeekStart: (id: number) => void;
 }) {
-  const canvas = useRef<HTMLCanvasElement>(null);
   const rail = useRef<HTMLDivElement>(null);
   const { left, zoom } = viewport;
   const [active, setActive] = useState(0);
@@ -48,40 +46,8 @@ export function Waveform({
   const seekPointer = useRef<number | null>(null);
   const span = Math.max(1, Math.ceil(audio.frames / zoom));
   const right = left + span;
+  const canvas = useWaveformCanvas(audio.peaks, left, span);
   const rate = audio.buffer.sampleRate;
-
-  useEffect(() => {
-    const element = canvas.current;
-    if (!element) return;
-    const draw = () => {
-      const { width, height } = element.getBoundingClientRect();
-      const ratio = window.devicePixelRatio || 1;
-      element.width = Math.round(width * ratio);
-      element.height = Math.round(height * ratio);
-      const ctx = element.getContext("2d");
-      if (!ctx || width < 1) return;
-      ctx.scale(ratio, ratio);
-      ctx.fillStyle = getComputedStyle(element).color;
-      for (let x = 0; x < width; x += 3) {
-        const start = Math.floor((left + (x / width) * span) / peakSize);
-        const end = Math.ceil((left + ((x + 3) / width) * span) / peakSize);
-        let peak = 0;
-        for (let i = start; i < end && i < audio.peaks.length; i++)
-          peak = Math.max(peak, audio.peaks[i]);
-        const bar = Math.max(1, Math.min(1, peak) * (height - 16));
-        ctx.fillRect(x, (height - bar) / 2, 2, bar);
-      }
-    };
-    const observer = new ResizeObserver(draw);
-    observer.observe(element);
-    const scheme = matchMedia("(prefers-color-scheme: dark)");
-    scheme.addEventListener("change", draw);
-    draw();
-    return () => {
-      observer.disconnect();
-      scheme.removeEventListener("change", draw);
-    };
-  }, [audio, left, span]);
 
   function update(edge: number, value: number) {
     onRange(editRange(range, edge, value, audio.frames));

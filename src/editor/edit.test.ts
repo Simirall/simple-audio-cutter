@@ -3,28 +3,17 @@ import {
   clampPosition,
   clock,
   editRange,
-  exportFileName,
   fadeSeconds,
   fadeSettings,
   frameCount,
   gainAt,
   outputPosition,
   parseTime,
+  rangeFromTime,
   remapPosition,
   revealFrame,
   sourcePosition,
 } from "./edit";
-
-describe("保存ファイル名", () => {
-  it("元の名前を使い、拡張子を保存形式に合わせる", () => {
-    expect(exportFileName("録音.編集前.m4a", "mp3")).toBe("録音.編集前.mp3");
-    expect(exportFileName("録音", "wav")).toBe("録音.wav");
-  });
-
-  it("保存時のローカル日付をゼロ埋めする", () => {
-    expect(exportFileName("録音.m4a", "wav", new Date(2026, 0, 5))).toBe("20260105.wav");
-  });
-});
 
 describe("カット", () => {
   it("選択した開始・終了サンプルから仕上がりの長さを求める", () => {
@@ -72,6 +61,16 @@ describe("再生位置", () => {
     expect(editRange([20, 60], 1, 0, 100)).toEqual([20, 21]);
     expect(parseTime("01:23.500", 48_000)).toBe(4_008_000);
     expect(parseTime("00:", 48_000)).toBeNaN();
+  });
+
+  it("時刻入力で音声の長さや選択範囲を超える場合は編集を拒否する", () => {
+    const range = [20, 60] as const;
+    expect(rangeFromTime(range, 0, "0.25", 100, 100)).toEqual([25, 60]);
+    expect(rangeFromTime(range, 1, "1", 100, 100)).toEqual([20, 100]);
+    expect(rangeFromTime(range, 0, "0.6", 100, 100)).toBeNull();
+    expect(rangeFromTime(range, 1, "0.2", 100, 100)).toBeNull();
+    expect(rangeFromTime(range, 1, "1.01", 100, 100)).toBeNull();
+    expect(rangeFromTime(range, 1, "00:", 100, 100)).toBeNull();
   });
 });
 

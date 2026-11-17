@@ -1,3 +1,4 @@
+import { atom, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   clampPosition,
@@ -6,8 +7,10 @@ import {
   outputPosition,
   remapPosition,
   sourcePosition,
-} from "./edit";
-import type { Range } from "./edit";
+} from "../editor/edit";
+import type { Range } from "../editor/edit";
+
+export const playbackPositionAtom = atom(0);
 
 const seekDelay = 120;
 type Edit = { range: Range; fades: Range; allowed: boolean };
@@ -18,7 +21,8 @@ export function usePlayback(
   fades: Range,
   allowed: boolean,
 ) {
-  const [position, setPosition] = useState(0);
+  const store = useStore();
+  const setPosition = useSetAtom(playbackPositionAtom);
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState(false);
   const context = useRef<AudioContext | null>(null);
@@ -155,11 +159,12 @@ export function usePlayback(
     pendingSeek.current = { timer: window.setTimeout(commit, seekDelay), commit };
   }
 
-  function applyEdit(edit: Edit) {
+  function applyEdit(previousRange: Range, edit: Edit) {
+    const position = store.get(playbackPositionAtom);
     const nextPosition = () =>
       graph.current
         ? outputPosition(edit.range, graph.current.sourceFrame())
-        : remapPosition(range, edit.range, position);
+        : remapPosition(previousRange, edit.range, position);
     setPosition(nextPosition());
     setError(false);
     if (!playing) return;
@@ -177,7 +182,6 @@ export function usePlayback(
   }
 
   return {
-    position,
     playing,
     error,
     pause,
@@ -186,7 +190,10 @@ export function usePlayback(
     applyEdit,
     toggle: () => {
       if (playing) pause();
-      else void start(position >= length ? 0 : position);
+      else {
+        const position = store.get(playbackPositionAtom);
+        void start(position >= length ? 0 : position);
+      }
     },
     beginScrub: (id: number) => {
       scrubPointer.current = id;

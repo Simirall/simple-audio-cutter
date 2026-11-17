@@ -1,3 +1,4 @@
+import { Provider } from "jotai";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@knadh/oat/oat.min.css";
@@ -6,6 +7,8 @@ import "./style.css";
 
 createRoot(document.getElementById("app")!).render(
   <StrictMode>
-    <App />
+    <Provider>
+      <App />
+    </Provider>
   </StrictMode>,
 );

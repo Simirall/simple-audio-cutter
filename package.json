@@ -15,6 +15,7 @@
     "@mediabunny/aac-encoder": "^1.66.0",
     "@mediabunny/mp3-encoder": "^1.66.0",
     "@phosphor-icons/react": "^2.1.10",
+    "jotai": "^3.0.2",
     "mediabunny": "^1.66.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
